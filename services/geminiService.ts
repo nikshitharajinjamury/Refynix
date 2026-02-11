@@ -1,96 +1,67 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
 import { ReviewResult } from "../types";
 
 /**
- * REFINYX AI GATEWAY
- * Powered by Gemini 3 Pro for advanced architectural analysis.
+ * REFINYX GROQ GATEWAY
+ * Powered by Groq LPU™ Inference Engine for ultra-low latency architectural analysis.
  */
 export async function analyzeCode(code: string, language: string, instruction?: string): Promise<ReviewResult> {
-  // Use API key from process.env.API_KEY
   const apiKey = process.env.API_KEY;
   
   if (!apiKey) {
-    throw new Error("API Key (process.env.API_KEY) is missing.");
+    throw new Error("Groq API Key (process.env.API_KEY) is missing.");
   }
-
-  // Initialize Gemini client
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const systemInstruction = `
     REFINYX ARCHITECT MODE.
-    You are the core intelligence of Refinyx. Analyze the code for logic, security, and performance.
+    You are the core intelligence of Refinyx, powered by Groq Llama 3.3. Analyze the code for logic, security, and performance.
     
     CRITICAL: You MUST return a valid JSON object matching the requested schema.
   `;
 
   try {
-    // Correct usage: ai.models.generateContent with model and prompt
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: `Language: ${language}\nCode:\n${code}${instruction ? `\nRequirement: ${instruction}` : ""}`,
-      config: {
-        systemInstruction: systemInstruction,
-        temperature: 0.1,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            summary: { type: Type.STRING },
-            optimizedCode: { type: Type.STRING },
-            issues: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  id: { type: Type.STRING },
-                  category: { type: Type.STRING },
-                  severity: { type: Type.STRING },
-                  title: { type: Type.STRING },
-                  description: { type: Type.STRING },
-                  line: { type: Type.NUMBER },
-                  suggestion: { type: Type.STRING }
-                },
-                required: ["id", "category", "severity", "title", "description", "line", "suggestion"]
-              }
-            },
-            scores: {
-              type: Type.OBJECT,
-              properties: {
-                security: { type: Type.NUMBER },
-                performance: { type: Type.NUMBER },
-                maintainability: { type: Type.NUMBER },
-                quality: { type: Type.NUMBER }
-              },
-              required: ["security", "performance", "maintainability", "quality"]
-            },
-            impacts: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  metric: { type: Type.STRING },
-                  before: { type: Type.NUMBER },
-                  after: { type: Type.NUMBER },
-                  unit: { type: Type.STRING },
-                  improvement: { type: Type.STRING }
-                },
-                required: ["metric", "before", "after", "unit", "improvement"]
-              }
-            }
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: `${systemInstruction}\n\nSchema:\n{
+              "summary": "string",
+              "optimizedCode": "string",
+              "issues": [{"id": "string", "category": "string", "severity": "string", "title": "string", "description": "string", "line": 0, "suggestion": "string"}],
+              "scores": {"security": 0, "performance": 0, "maintainability": 0, "quality": 0},
+              "impacts": [{"metric": "string", "before": 0, "after": 0, "unit": "string", "improvement": "string"}]
+            }`
           },
-          required: ["summary", "issues", "optimizedCode", "scores", "impacts"]
-        }
-      }
+          {
+            role: 'user',
+            content: `Language: ${language}\nCode:\n${code}${instruction ? `\nRequirement: ${instruction}` : ""}`
+          }
+        ],
+        temperature: 0.1,
+        response_format: { type: 'json_object' }
+      })
     });
 
-    // Access .text property directly as per guidelines
-    const content = response.text;
-    if (!content) throw new Error("Empty response from Gemini engine");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || "Groq Analysis failed.");
+    }
+
+    const data = await response.json();
+    const content = data.choices[0]?.message?.content;
+    
+    if (!content) throw new Error("Empty response from Groq engine");
     
     return JSON.parse(content) as ReviewResult;
   } catch (error) {
-    console.error("Refinyx Gemini Analysis Error:", error);
+    console.error("Refinyx Groq Analysis Error:", error);
     throw error;
   }
 }

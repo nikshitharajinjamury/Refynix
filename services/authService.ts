@@ -8,8 +8,24 @@ import { UserRecord, VirtualEmail } from "../types";
 
 const STORAGE_KEY = 'refinyx_user_db';
 
+// Helper to ensure at least one demo user exists
+const seedDemoUser = () => {
+  const data = localStorage.getItem(STORAGE_KEY);
+  const users: UserRecord[] = data ? JSON.parse(data) : [];
+  
+  if (!users.find(u => u.email === 'demo@refinyx.io')) {
+    users.push({
+      email: 'demo@refinyx.io',
+      name: 'Demo Architect',
+      verified: true
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+  }
+};
+
 export const authService = {
   getUsers: (): UserRecord[] => {
+    seedDemoUser();
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   },
@@ -31,13 +47,12 @@ export const authService = {
     const users = authService.getUsers();
     const user = users.find(u => u.email === email);
 
-    if (!user) return { success: false, error: "Identity not found. Please sign up." };
+    if (!user) return { success: false, error: "Identity not found. Please sign up or use Guest Access." };
     if (!user.verified) return { success: false, error: "Verification pending.", user };
 
     return { success: true, user };
   },
 
-  // Fixed error: Property 'code' is now optional in the return type
   signUp: async (email: string, name: string): Promise<{ success: boolean; code?: string; error?: string }> => {
     await new Promise(r => setTimeout(r, 1000));
     const users = authService.getUsers();

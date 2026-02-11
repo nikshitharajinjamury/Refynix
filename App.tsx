@@ -24,7 +24,8 @@ import {
   FileCode,
   Activity,
   Layers,
-  Globe
+  Globe,
+  Gauge
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -64,7 +65,7 @@ const App: React.FC = () => {
     };
   });
 
-  const steps = ["Gemini Handshake", "Architectural Reasoning", "Security Auditing", "Optimizing Codebase", "Finalizing JSON"];
+  const steps = ["Groq LPU Handshake", "Llama 3.3 Reasoning", "Security Vector Scan", "Optimizing Code", "Finalizing JSON"];
 
   useEffect(() => {
     let interval: any;
@@ -72,7 +73,7 @@ const App: React.FC = () => {
       setAnalysisStep(0);
       interval = setInterval(() => {
         setAnalysisStep(prev => (prev < steps.length - 1 ? prev + 1 : prev));
-      }, 300);
+      }, 200);
     } else {
       setAnalysisStep(0);
     }
@@ -115,7 +116,7 @@ const App: React.FC = () => {
         }, ...prev.history].slice(0, 50)
       }));
     } catch (err: any) {
-      setState(prev => ({ ...prev, isAnalyzing: false, error: err.message || "Analysis failed." }));
+      setState(prev => ({ ...prev, isAnalyzing: false, error: err.message || "Groq analysis failed. Verify API Key." }));
     }
   };
 
@@ -139,24 +140,24 @@ const App: React.FC = () => {
   if (!isLoggedIn) return <LoginPage onLogin={handleLogin} />;
 
   return (
-    <div className="min-h-screen flex flex-col selection:bg-emerald-500/30">
+    <div className="min-h-screen flex flex-col selection:bg-orange-500/30">
       {/* Loading Overlay */}
       {state.isAnalyzing && (
         <div className="fixed inset-0 z-[100] glass flex items-center justify-center animate-in fade-in duration-300">
           <div className="text-center space-y-6 max-w-sm w-full px-6">
             <div className="w-20 h-20 mx-auto relative">
-              <div className="absolute inset-0 border-[3px] border-emerald-500/10 rounded-full"></div>
-              <div className="absolute inset-0 border-[3px] border-emerald-500 rounded-full border-t-transparent animate-spin"></div>
+              <div className="absolute inset-0 border-[3px] border-orange-500/10 rounded-full"></div>
+              <div className="absolute inset-0 border-[3px] border-orange-500 rounded-full border-t-transparent animate-spin"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                 <Zap className="w-8 h-8 text-emerald-500 animate-pulse" />
+                 <Zap className="w-8 h-8 text-orange-500 animate-pulse" />
               </div>
             </div>
             <div className="space-y-3">
-              <h3 className="text-xl font-black text-white tracking-tighter uppercase italic">Gemini Processing...</h3>
+              <h3 className="text-xl font-black text-white tracking-tighter uppercase italic">Groq LPU Processing...</h3>
               <div className="flex flex-col gap-1.5">
                 {steps.map((s, i) => (
-                  <div key={s} className={`text-[10px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 ${i === analysisStep ? 'text-emerald-400 opacity-100 scale-105' : i < analysisStep ? 'text-slate-600 opacity-50' : 'text-slate-800 opacity-20'}`}>
-                    {i === analysisStep && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>}
+                  <div key={s} className={`text-[10px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 ${i === analysisStep ? 'text-orange-400 opacity-100 scale-105' : i < analysisStep ? 'text-slate-600 opacity-50' : 'text-slate-800 opacity-20'}`}>
+                    {i === analysisStep && <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping"></span>}
                     {s}
                   </div>
                 ))}
@@ -169,10 +170,10 @@ const App: React.FC = () => {
       <nav className="h-20 glass sticky top-0 z-50 px-8 flex items-center justify-between border-b border-white/5">
         <div className="flex items-center gap-12">
           <div className="flex items-center gap-3 group cursor-pointer" onClick={() => setState(prev => ({ ...prev, currentView: 'dashboard' }))}>
-            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
+            <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform">
               <Layers className="text-white w-5 h-5" strokeWidth={3} />
             </div>
-            <span className="font-black text-xl tracking-tighter text-white">Refinyx <span className="text-emerald-500">AI</span></span>
+            <span className="font-black text-xl tracking-tighter text-white">Refinyx <span className="text-orange-500">AI</span></span>
           </div>
           <div className="hidden md:flex gap-1">
             {[
@@ -193,16 +194,16 @@ const App: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-6">
-          <div className="hidden lg:flex items-center gap-4 px-4 py-2 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl">
+          <div className="hidden lg:flex items-center gap-4 px-4 py-2 bg-orange-500/5 border border-orange-500/10 rounded-2xl">
              <div className="flex flex-col items-end">
-                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Gemini Backend</span>
-                <span className="text-[10px] font-bold text-slate-300">Gemini 3 Pro (Online)</span>
+                <span className="text-[9px] font-black text-orange-500 uppercase tracking-widest">Groq LPU Backend</span>
+                <span className="text-[10px] font-bold text-slate-300">Llama 3.3 70B (Sub-second)</span>
              </div>
-             <Globe className="w-5 h-5 text-emerald-500 animate-pulse" />
+             <Gauge className="w-5 h-5 text-orange-500 animate-pulse" />
           </div>
 
           <div className="flex items-center gap-3 px-4 py-2 bg-slate-900/50 rounded-2xl border border-white/5">
-             <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-emerald-500 to-blue-500 flex items-center justify-center text-[10px] font-black text-white uppercase">{state.settings.displayName.charAt(0)}</div>
+             <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-orange-500 to-red-500 flex items-center justify-center text-[10px] font-black text-white uppercase">{state.settings.displayName.charAt(0)}</div>
              <span className="text-xs font-bold text-slate-300">{state.settings.displayName}</span>
              <button onClick={handleLogout} className="text-[10px] font-black text-slate-600 hover:text-red-400 transition-colors uppercase ml-2 flex items-center gap-1">
                <LogOut className="w-3 h-3" />
@@ -223,13 +224,13 @@ const App: React.FC = () => {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: 'Refinements', value: state.history.length, color: 'emerald', icon: Search },
+                { label: 'LPU Refinements', value: state.history.length, color: 'orange', icon: Search },
                 { label: 'System Health', value: state.history.length > 0 ? Math.round(state.history.reduce((a, b) => a + b.result.scores.quality, 0) / state.history.length) + '%' : 'N/A', color: 'blue', icon: Activity },
                 { label: 'Detected Issues', value: state.history.reduce((a, b) => a + b.result.issues.length, 0), color: 'amber', icon: Bug },
-                { label: 'Refinyx Engine', value: 'Gemini 3', color: 'emerald', icon: Cpu },
+                { label: 'Refinyx Engine', value: 'Llama 3.3', color: 'orange', icon: Cpu },
               ].map((s, i) => (
                 <div key={i} className="glass p-8 rounded-[32px] border border-white/5 hover:border-white/10 transition-all group overflow-hidden relative">
-                  <div className={`absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 blur-3xl rounded-full -mr-8 -mt-8`}></div>
+                  <div className={`absolute top-0 right-0 w-24 h-24 bg-orange-500/10 blur-3xl rounded-full -mr-8 -mt-8`}></div>
                   <div className="flex justify-between items-start mb-2">
                     <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{s.label}</div>
                     <s.icon className={`w-4 h-4 text-slate-600`} />
@@ -243,7 +244,7 @@ const App: React.FC = () => {
               <div className="p-6 border-b border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <select 
-                    className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-black outline-none focus:ring-2 focus:ring-emerald-500 text-emerald-400 uppercase tracking-widest cursor-pointer"
+                    className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-black outline-none focus:ring-2 focus:ring-orange-500 text-orange-400 uppercase tracking-widest cursor-pointer"
                     value={state.language}
                     onChange={(e) => setState(prev => ({ ...prev, language: e.target.value as Language }))}
                   >
@@ -252,7 +253,7 @@ const App: React.FC = () => {
                     ))}
                   </select>
                   <button onClick={loadSample} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-black text-slate-400 uppercase tracking-widest transition-all">
-                    <FileCode className="w-3 h-3 text-emerald-500" />
+                    <FileCode className="w-3 h-3 text-orange-500" />
                     Load Sample
                   </button>
                 </div>
@@ -264,14 +265,14 @@ const App: React.FC = () => {
                   <div className="flex gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500/30"></div>
                     <div className="w-2.5 h-2.5 rounded-full bg-amber-500/30"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/30"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-orange-500/30"></div>
                   </div>
                 </div>
               </div>
               <div className="relative">
                 <textarea
                   className="w-full h-[450px] bg-transparent p-10 text-lg code-font text-slate-300 outline-none resize-none leading-relaxed placeholder:text-slate-800"
-                  placeholder="// Paste your source code here for Gemini-powered refinement..."
+                  placeholder="// Paste your source code here for Groq-powered refinement..."
                   value={state.code}
                   onChange={(e) => setState(prev => ({ ...prev, code: e.target.value }))}
                 />
@@ -279,10 +280,10 @@ const App: React.FC = () => {
                   <Button 
                     onClick={handleAnalyze} 
                     isLoading={state.isAnalyzing}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-emerald-500/30 flex items-center gap-3"
+                    className="bg-orange-600 hover:bg-orange-500 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-orange-500/30 flex items-center gap-3"
                   >
                     <Zap className="w-4 h-4 fill-current" />
-                    Refine with Gemini
+                    Refine with Groq
                   </Button>
                 </div>
               </div>
@@ -307,7 +308,7 @@ const App: React.FC = () => {
         {state.currentView === 'analytics' && (
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
             <div className="flex flex-col gap-2">
-              <h2 className="text-4xl font-black text-white tracking-tighter">Refinyx <span className="text-emerald-500">Insights</span></h2>
+              <h2 className="text-4xl font-black text-white tracking-tighter">Refinyx <span className="text-orange-500">Insights</span></h2>
               <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Architectural performance metrics over time</p>
             </div>
             {state.history.length === 0 ? (
@@ -320,22 +321,22 @@ const App: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div className="glass p-10 rounded-[40px] border border-white/5">
                     <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-10 flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-emerald-500" /> Quality Trend
+                      <Zap className="w-4 h-4 text-orange-500" /> Quality Trend
                     </h3>
                     <div className="h-80 w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={analyticsData}>
                           <defs>
                             <linearGradient id="colorQuality" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                              <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                              <stop offset="5%" stopColor="#ea580c" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="#ea580c" stopOpacity={0}/>
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
                           <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                           <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                           <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '12px' }} itemStyle={{ color: '#f8fafc', fontSize: '12px' }} />
-                          <Area type="monotone" dataKey="quality" stroke="#10b981" fillOpacity={1} fill="url(#colorQuality)" strokeWidth={3} />
+                          <Area type="monotone" dataKey="quality" stroke="#ea580c" fillOpacity={1} fill="url(#colorQuality)" strokeWidth={3} />
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
@@ -366,13 +367,13 @@ const App: React.FC = () => {
         {state.currentView === 'settings' && (
           <div className="max-w-3xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
             <div className="flex flex-col gap-2">
-              <h2 className="text-4xl font-black text-white tracking-tighter">Refinyx <span className="text-emerald-500">Preferences</span></h2>
+              <h2 className="text-4xl font-black text-white tracking-tighter">Refinyx <span className="text-orange-500">Preferences</span></h2>
               <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Workspace Configuration</p>
             </div>
             <div className="space-y-6">
               <div className="glass p-8 rounded-[32px] border border-white/5 space-y-8">
                 <div className="flex items-center gap-6">
-                   <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-500 to-blue-500 flex items-center justify-center text-3xl font-black text-white shadow-2xl">{state.settings.displayName.charAt(0)}</div>
+                   <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-orange-500 to-red-500 flex items-center justify-center text-3xl font-black text-white shadow-2xl">{state.settings.displayName.charAt(0)}</div>
                    <div className="space-y-1">
                       <h4 className="text-xl font-bold text-white">{state.settings.displayName}</h4>
                       <p className="text-slate-500 text-sm font-medium italic">Lead Architect</p>
@@ -381,19 +382,19 @@ const App: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Display Name</label>
-                    <input type="text" className="w-full bg-slate-900 border border-white/5 rounded-2xl px-6 py-4 text-white outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-medium" value={state.settings.displayName} onChange={(e) => setState(prev => ({ ...prev, settings: { ...prev.settings, displayName: e.target.value } }))} />
+                    <input type="text" className="w-full bg-slate-900 border border-white/5 rounded-2xl px-6 py-4 text-white outline-none focus:ring-2 focus:ring-orange-500/50 transition-all font-medium" value={state.settings.displayName} onChange={(e) => setState(prev => ({ ...prev, settings: { ...prev.settings, displayName: e.target.value } }))} />
                   </div>
                 </div>
               </div>
               <div className="glass p-8 rounded-[32px] border border-white/5">
-                 <h4 className="text-sm font-black text-white uppercase tracking-widest mb-6 flex items-center gap-2"><Globe className="w-4 h-4 text-emerald-500" /> Platform Infrastructure</h4>
+                 <h4 className="text-sm font-black text-white uppercase tracking-widest mb-6 flex items-center gap-2"><Globe className="w-4 h-4 text-orange-500" /> Platform Infrastructure</h4>
                  <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
                        <div className="space-y-1">
                           <p className="text-sm font-bold text-slate-200">Refinyx Backend Layer</p>
-                          <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Gemini 3 Pro Engine</p>
+                          <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Groq LPU Engine + Llama 3.3</p>
                        </div>
-                       <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                       <div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(234,88,12,0.5)]"></div>
                     </div>
                     <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
                        <div className="space-y-1">
@@ -401,6 +402,13 @@ const App: React.FC = () => {
                           <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Virtual Auth Middleware (Mocked)</p>
                        </div>
                        <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
+                       <div className="space-y-1">
+                          <p className="text-sm font-bold text-slate-200">Voice Assistant Gateway</p>
+                          <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Gemini 2.5 Multi-modal Native</p>
+                       </div>
+                       <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                     </div>
                  </div>
               </div>
