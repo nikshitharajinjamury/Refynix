@@ -1,6 +1,6 @@
 {
-  "name": "CodePulse AI",
-  "description": "An advanced generative AI tool for real-time code review, vulnerability detection, and intelligent optimization suggestions across multiple languages.",
+  "name": "Refinyx",
+  "description": "The ultimate architectural code refinement and optimization portal powered by Gemini 2.5 Intelligence.",
   "requestFramePermissions": [
     "microphone"
   ]

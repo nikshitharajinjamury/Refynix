@@ -63,6 +63,21 @@ export interface HistoryItem {
   result: ReviewResult;
 }
 
+export interface UserRecord {
+  email: string;
+  name: string;
+  verified: boolean;
+}
+
+export interface VirtualEmail {
+  id: string;
+  from: string;
+  subject: string;
+  body: string;
+  time: string;
+  code: string;
+}
+
 export interface UserSettings {
   displayName: string;
   preferredLanguages: Language[];

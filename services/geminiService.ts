@@ -1,86 +1,96 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { ReviewResult, Category, Severity } from "../types";
+import { ReviewResult } from "../types";
 
-const REVIEW_SCHEMA = {
-  type: Type.OBJECT,
-  properties: {
-    summary: { type: Type.STRING, description: "Executive summary of the code review." },
-    issues: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          id: { type: Type.STRING },
-          category: { type: Type.STRING, enum: Object.values(Category) },
-          severity: { type: Type.STRING, enum: Object.values(Severity) },
-          title: { type: Type.STRING },
-          description: { type: Type.STRING },
-          line: { type: Type.INTEGER },
-          suggestion: { type: Type.STRING }
-        },
-        required: ["id", "category", "severity", "title", "description", "line", "suggestion"]
-      }
-    },
-    optimizedCode: { type: Type.STRING, description: "Full optimized source code." },
-    scores: {
-      type: Type.OBJECT,
-      properties: {
-        security: { type: Type.INTEGER },
-        performance: { type: Type.INTEGER },
-        maintainability: { type: Type.INTEGER },
-        quality: { type: Type.INTEGER }
-      },
-      required: ["security", "performance", "maintainability", "quality"]
-    },
-    impacts: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          metric: { type: Type.STRING },
-          before: { type: Type.NUMBER },
-          after: { type: Type.NUMBER },
-          unit: { type: Type.STRING },
-          improvement: { type: Type.STRING }
-        },
-        required: ["metric", "before", "after", "unit", "improvement"]
-      }
-    }
-  },
-  required: ["summary", "issues", "optimizedCode", "scores", "impacts"]
-};
-
+/**
+ * REFINYX AI GATEWAY
+ * Powered by Gemini 3 Pro for advanced architectural analysis.
+ */
 export async function analyzeCode(code: string, language: string, instruction?: string): Promise<ReviewResult> {
+  // Use API key from process.env.API_KEY
   const apiKey = process.env.API_KEY;
-  if (!apiKey || apiKey === "undefined") {
-    throw new Error("API_KEY is missing. Please create a .env file with API_KEY=your_key");
+  
+  if (!apiKey) {
+    throw new Error("API Key (process.env.API_KEY) is missing.");
   }
 
-  const ai = new GoogleGenAI({ apiKey });
+  // Initialize Gemini client
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const systemInstruction = `
-    You are a Senior Software Architect.
-    Conduct a deep review of the provided code.
-    Detect bugs, security vulnerabilities, and performance bottlenecks.
-    Return results strictly in JSON format matching the schema.
+    REFINYX ARCHITECT MODE.
+    You are the core intelligence of Refinyx. Analyze the code for logic, security, and performance.
+    
+    CRITICAL: You MUST return a valid JSON object matching the requested schema.
   `;
 
   try {
+    // Correct usage: ai.models.generateContent with model and prompt
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Context: ${language}. Code:\n${code}${instruction ? `\nRequest: ${instruction}` : ''}`,
+      model: 'gemini-3-pro-preview',
+      contents: `Language: ${language}\nCode:\n${code}${instruction ? `\nRequirement: ${instruction}` : ""}`,
       config: {
-        systemInstruction,
+        systemInstruction: systemInstruction,
+        temperature: 0.1,
         responseMimeType: "application/json",
-        responseSchema: REVIEW_SCHEMA,
-        thinkingConfig: { thinkingBudget: 0 }
-      },
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            summary: { type: Type.STRING },
+            optimizedCode: { type: Type.STRING },
+            issues: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: { type: Type.STRING },
+                  category: { type: Type.STRING },
+                  severity: { type: Type.STRING },
+                  title: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                  line: { type: Type.NUMBER },
+                  suggestion: { type: Type.STRING }
+                },
+                required: ["id", "category", "severity", "title", "description", "line", "suggestion"]
+              }
+            },
+            scores: {
+              type: Type.OBJECT,
+              properties: {
+                security: { type: Type.NUMBER },
+                performance: { type: Type.NUMBER },
+                maintainability: { type: Type.NUMBER },
+                quality: { type: Type.NUMBER }
+              },
+              required: ["security", "performance", "maintainability", "quality"]
+            },
+            impacts: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  metric: { type: Type.STRING },
+                  before: { type: Type.NUMBER },
+                  after: { type: Type.NUMBER },
+                  unit: { type: Type.STRING },
+                  improvement: { type: Type.STRING }
+                },
+                required: ["metric", "before", "after", "unit", "improvement"]
+              }
+            }
+          },
+          required: ["summary", "issues", "optimizedCode", "scores", "impacts"]
+        }
+      }
     });
 
-    return JSON.parse(response.text || '{}') as ReviewResult;
+    // Access .text property directly as per guidelines
+    const content = response.text;
+    if (!content) throw new Error("Empty response from Gemini engine");
+    
+    return JSON.parse(content) as ReviewResult;
   } catch (error) {
-    console.error("Analysis Error:", error);
+    console.error("Refinyx Gemini Analysis Error:", error);
     throw error;
   }
 }
