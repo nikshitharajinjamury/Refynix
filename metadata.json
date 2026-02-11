@@ -1,0 +1,7 @@
+{
+  "name": "CodePulse AI",
+  "description": "An advanced generative AI tool for real-time code review, vulnerability detection, and intelligent optimization suggestions across multiple languages.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

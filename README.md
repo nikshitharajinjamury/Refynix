@@ -1,11 +1,28 @@
-<div align="center">
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+# CodeReview AI - Premium Portal
 
-  <h1>Built with AI Studio</h2>
+Advanced Generative AI tool for code optimization and vulnerability detection.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Local Setup (VS Code)
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-</div>
+2. **Environment Variables**:
+   Ensure you have access to a valid Google Gemini API Key. The app expects `process.env.API_KEY` to be available (handled by Vite automatically if placed in a `.env` file).
+
+3. **Launch Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+4. **Access UI**:
+   Open the browser to `http://localhost:5173`.
+
+## Features
+- **Ultra-Fast Analysis**: Powered by Gemini 3 Flash.
+- **Side-by-Side Comparison**: Live diffing between original and optimized code.
+- **Cyber-Aesthetic UI**: High-fidelity dashboard built with Tailwind CSS.
+- **Voice Intelligence**: Multi-modal session support for auditory explanations.
