@@ -56,8 +56,8 @@ export interface ReviewResult {
 }
 
 export interface HistoryItem {
-  id: string;
-  timestamp: number;
+  id: number;
+  timestamp: string;
   code: string;
   language: Language;
   result: ReviewResult;
@@ -67,6 +67,7 @@ export interface UserRecord {
   email: string;
   name: string;
   verified: boolean;
+  token?: string;
 }
 
 export interface VirtualEmail {
@@ -86,7 +87,7 @@ export interface UserSettings {
   darkMode: boolean;
 }
 
-export type View = 'dashboard' | 'analytics' | 'settings';
+export type View = 'dashboard' | 'analytics' | 'settings' | 'history';
 
 export interface ReviewState {
   code: string;
