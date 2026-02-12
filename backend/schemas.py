@@ -43,3 +43,49 @@ class ResetPassword(BaseModel):
 
 class GoogleLogin(BaseModel):
     token: str
+
+class TestCase(BaseModel):
+    description: str
+    input: str
+    expected_output: str
+
+class TestResponse(BaseModel):
+    test_cases: List[TestCase]
+
+class TestResult(BaseModel):
+    description: str
+    passed: bool
+    actual_output: str
+    error: Optional[str] = None
+
+class TestRunRequest(BaseModel):
+    code: str
+    language: str
+    test_cases: List[TestCase]
+
+class TestRunResponse(BaseModel):
+    results: List[TestResult]
+
+class InterviewRequest(BaseModel):
+    topic: str
+    level: str = "Intermediate"
+    count: int = 5
+
+class QuestionRequest(BaseModel):
+    topic: str
+    question: str
+    context: Optional[str] = None
+
+class QuestionResponse(BaseModel):
+    answer: str
+
+class InterviewQuestion(BaseModel):
+    id: int
+    question: str
+    options: Optional[List[str]] = None
+    answer: str
+    explanation: str
+    difficulty: str
+
+class InterviewResponse(BaseModel):
+    questions: List[InterviewQuestion]

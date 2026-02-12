@@ -28,7 +28,7 @@ const ReviewDashboard: React.FC<Props> = ({ result }) => {
             {result.summary}
           </p>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10 mb-8">
             {Object.entries(result.scores).map(([key, value]) => (
               <div key={key} className="space-y-3">
                 <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{key}</div>
@@ -38,6 +38,17 @@ const ReviewDashboard: React.FC<Props> = ({ result }) => {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="flex gap-12 relative z-10 border-t border-white/5 pt-8">
+            <div className="space-y-2">
+              <div className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Time Complexity</div>
+              <div className="text-2xl font-black text-white italic">{result.timeComplexity || 'N/A'}</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Space Complexity</div>
+              <div className="text-2xl font-black text-white italic">{result.spaceComplexity || 'N/A'}</div>
+            </div>
           </div>
         </div>
 
@@ -66,30 +77,32 @@ const ReviewDashboard: React.FC<Props> = ({ result }) => {
       {/* Impact Assessment Grid */}
       {result.impacts && result.impacts.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {result.impacts.map((impact, idx) => (
-            <div key={idx} className="bg-[#0f172a]/60 backdrop-blur-xl p-6 rounded-3xl border border-white/10 hover:border-white/20 transition-all shadow-xl">
-              <div className="flex justify-between items-start mb-4">
-                <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">{impact.metric}</div>
-                <div className="px-2 py-1 rounded-lg bg-orange-500/10 text-orange-400 text-[10px] font-black uppercase">
-                  {impact.improvement}
+          {result.impacts
+            .filter(impact => !impact.metric.toLowerCase().includes('complexity'))
+            .map((impact, idx) => (
+              <div key={idx} className="bg-[#0f172a]/60 backdrop-blur-xl p-6 rounded-3xl border border-white/10 hover:border-white/20 transition-all shadow-xl">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">{impact.metric}</div>
+                  <div className="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase">
+                    {impact.improvement}
+                  </div>
+                </div>
+                <div className="flex items-end gap-3">
+                  <div className="text-2xl font-bold text-white tracking-tighter">
+                    {impact.after} <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1">{impact.unit}</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 mb-1 font-bold uppercase tracking-widest">
+                    Was: {impact.before}
+                  </div>
+                </div>
+                <div className="mt-4 w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                    style={{ width: `${Math.min(100, (impact.after / (impact.before || 1)) * 100)}%` }}
+                  ></div>
                 </div>
               </div>
-              <div className="flex items-end gap-3">
-                <div className="text-2xl font-bold text-white">
-                  {impact.after} <span className="text-xs text-slate-500 font-medium">{impact.unit}</span>
-                </div>
-                <div className="text-xs text-slate-500 mb-1">
-                  Was: {impact.before}
-                </div>
-              </div>
-              <div className="mt-4 w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-orange-600 to-red-600 rounded-full"
-                  style={{ width: `${Math.min(100, (impact.after / (impact.before || 1)) * 100)}%` }}
-                ></div>
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
     </div>

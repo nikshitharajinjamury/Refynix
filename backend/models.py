@@ -48,6 +48,8 @@ class ReviewResult(BaseModel):
     issues: List[CodeIssue]
     scores: ReviewScores
     impacts: List[ImpactAssessment]
+    timeComplexity: str = "N/A"
+    spaceComplexity: str = "N/A"
 
 class ReviewHistory(Base):
     __tablename__ = "review_history"

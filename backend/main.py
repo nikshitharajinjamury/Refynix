@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 from models import CodeRequest, ReviewResult, User, ReviewHistory
-from schemas import ReviewHistoryResponse
+import schemas
 from service import GroqService
 from database import engine, Base, get_db
 from auth import router as auth_router, get_current_user, get_optional_user
@@ -78,7 +78,7 @@ async def analyze_code(request: CodeRequest, user: Optional[User] = Depends(get_
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/history", response_model=List[ReviewHistoryResponse])
+@app.get("/history", response_model=List[schemas.ReviewHistoryResponse])
 def get_history(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     history = db.query(ReviewHistory).filter(ReviewHistory.user_id == user.id).order_by(ReviewHistory.id.desc()).all()
     
@@ -86,7 +86,7 @@ def get_history(user: User = Depends(get_current_user), db: Session = Depends(ge
     for item in history:
         try:
             result_obj = json.loads(item.result)
-            response.append(ReviewHistoryResponse(
+            response.append(schemas.ReviewHistoryResponse(
                 id=item.id,
                 code=item.code,
                 language=item.language,
@@ -97,6 +97,64 @@ def get_history(user: User = Depends(get_current_user), db: Session = Depends(ge
             continue
             
     return response
+
+@app.post("/tests/generate")
+async def generate_tests(request: CodeRequest):
+    if not service:
+         raise HTTPException(status_code=503, detail="Analysis service not available.")
+    
+    try:
+        result = await service.generate_test_cases(request.code, request.language)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/tests/run", response_model=schemas.TestRunResponse)
+async def run_tests(request: schemas.TestRunRequest):
+    if not service:
+         raise HTTPException(status_code=503, detail="Analysis service not available.")
+    
+    try:
+        # Convert Pydantic models to list of dicts for service
+        test_cases_dict = [tc.model_dump() for tc in request.test_cases]
+        result = await service.run_tests(request.code, request.language, test_cases_dict)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/interview/generate")
+async def generate_interview(request: dict):
+    # request: {"topic": str, "level": str, "count": int}
+    if not service:
+         raise HTTPException(status_code=503, detail="Analysis service not available.")
+    
+    try:
+        topic = request.get("topic", "General Programming")
+        level = request.get("level", "Intermediate")
+        count = request.get("count", 5)
+        result = await service.generate_interview_questions(topic, level, count)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/interview/ask")
+async def ask_interview(request: dict):
+    # request: {"topic": str, "question": str, "context": Optional[str]}
+    if not service:
+         raise HTTPException(status_code=503, detail="Analysis service not available.")
+    
+    try:
+        topic = request.get("topic", "General Programming")
+        question = request.get("question")
+        context = request.get("context")
+        
+        if not question:
+            raise HTTPException(status_code=400, detail="Question is required")
+
+        result = await service.ask_interview_question(topic, question, context)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
 async def health_check():

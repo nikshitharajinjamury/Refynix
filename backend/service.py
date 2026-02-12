@@ -35,7 +35,9 @@ class GroqService:
           "optimizedCode": "string",
           "issues": [{"id": "string", "category": "string", "severity": "string", "title": "string", "description": "string", "line": 0, "suggestion": "string"}],
           "scores": {"security": 0, "performance": 0, "maintainability": 0, "quality": 0},
-          "impacts": [{"metric": "string", "before": 0, "after": 0, "unit": "string", "improvement": "string"}]
+          "impacts": [{"metric": "string", "before": 0, "after": 0, "unit": "string", "improvement": "string"}],
+          "timeComplexity": "string", // e.g., O(n), O(log n)
+          "spaceComplexity": "string" // e.g., O(1), O(n)
         }
         """
 
@@ -70,6 +72,124 @@ class GroqService:
 
             return ReviewResult.model_validate(data)
 
+
         except Exception as e:
             print(f"Error in Groq analysis: {e}")
             raise e
+
+    async def generate_test_cases(self, code: str, language: str) -> dict:
+        system_instruction = """
+        You are an expert QA engineer. Generate comprehensive test cases for the provided code.
+        Focus on edge cases, boundary values, and potential failure scenarios.
+        
+        CRITICAL: Return a valid JSON object matching the schema:
+        {
+            "test_cases": [
+                {"description": "string", "input": "string", "expected_output": "string"}
+            ]
+        }
+        """
+
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_instruction},
+                    {"role": "user", "content": f"Language: {language}\nCode:\n{code}"}
+                ],
+                model="llama-3.3-70b-versatile",
+                temperature=0.2,
+                response_format={"type": "json_object"}
+            )
+            return json.loads(chat_completion.choices[0].message.content)
+        except Exception as e:
+            print(f"Error generating test cases: {e}")
+            raise e
+
+    async def run_tests(self, code: str, language: str, test_cases: list) -> dict:
+        system_instruction = """
+        You are a Code Execution Simulator. accurately simulate the execution of the provided code against the test cases.
+        
+        CRITICAL: Return a valid JSON object matching the schema:
+        {
+            "results": [
+                {"description": "string", "passed": boolean, "actual_output": "string", "error": "string (optional)"}
+            ]
+        }
+        """
+        
+        user_content = f"Language: {language}\nCode:\n{code}\n\nTest Cases:\n{json.dumps(test_cases)}"
+
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_instruction},
+                    {"role": "user", "content": user_content}
+                ],
+                model="llama-3.3-70b-versatile",
+                temperature=0.1,
+                response_format={"type": "json_object"}
+            )
+            return json.loads(chat_completion.choices[0].message.content)
+        except Exception as e:
+            print(f"Error executing tests: {e}")
+            raise e
+
+    async def generate_interview_questions(self, topic: str, level: str, count: int = 5) -> dict:
+        system_instruction = f"""
+        You are a technical interviewer. Generate {count} unique and challenging interview questions based on the topic.
+        Include a mix of conceptual and practical questions.
+        
+        CRITICAL: Return a valid JSON object matching the schema:
+        {{
+            "questions": [
+                {{
+                    "id": 1,
+                    "question": "string",
+                    "options": ["A", "B", "C", "D"], // Optional, for multiple choice
+                    "answer": "string",
+                    "explanation": "string",
+                    "difficulty": "Easy" | "Medium" | "Hard"
+                }}
+            ]
+        }}
+        """
+
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_instruction},
+                    {"role": "user", "content": f"Topic: {topic}\nLevel: {level}"}
+                ],
+                model="llama-3.3-70b-versatile",
+                temperature=0.7,
+                response_format={"type": "json_object"}
+            )
+            return json.loads(chat_completion.choices[0].message.content)
+        except Exception as e:
+            print(f"Error generating interview questions: {e}")
+            raise e
+
+    async def ask_interview_question(self, topic: str, question: str, context: Optional[str] = None) -> dict:
+        system_instruction = """
+        You are an expert technical mentor. Answer the user's question clearly and concisely.
+        Provide code examples where relevant.
+        """
+        
+        user_content = f"Topic: {topic}\nQuestion: {question}"
+        if context:
+            user_content += f"\nContext: {context}"
+
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_instruction},
+                    {"role": "user", "content": user_content}
+                ],
+                model="llama-3.3-70b-versatile",
+                temperature=0.5
+            )
+            return {"answer": chat_completion.choices[0].message.content}
+        except Exception as e:
+            print(f"Error answering interview question: {e}")
+            raise e
+

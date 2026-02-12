@@ -11,6 +11,8 @@ import VoiceAssistant from './components/VoiceAssistant';
 import LoginPage from './components/LoginPage';
 import ReviewHistory from './components/ReviewHistory';
 import ParticlesBackground from './components/ParticlesBackground';
+import TestCases from './components/TestCases';
+import InterviewPrep from './components/InterviewPrep';
 import {
   LayoutDashboard,
   BarChart3,
@@ -31,7 +33,8 @@ import {
   ArrowRight,
   Clock,
   ChevronRight,
-  Check
+  Check,
+  GraduationCap
 } from 'lucide-react';
 import {
   LineChart,
@@ -221,6 +224,7 @@ const App: React.FC = () => {
           <div className="hidden md:flex gap-1">
             {[
               { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+              { id: 'interview', icon: GraduationCap, label: 'Interview Prep' },
               { id: 'history', icon: Clock, label: 'History' },
               { id: 'analytics', icon: BarChart3, label: 'Analytics' },
               { id: 'settings', icon: SettingsIcon, label: 'Settings' }
@@ -351,7 +355,8 @@ const App: React.FC = () => {
                   <div className="xl:col-span-3 bg-[#0f172a]/60 backdrop-blur-xl rounded-[40px] border border-white/10 overflow-hidden h-[700px] shadow-2xl">
                     <CodeComparison original={state.code} optimized={state.result.optimizedCode} language={state.language} />
                   </div>
-                  <div className="xl:col-span-2 max-h-[700px] overflow-auto pr-2 custom-scroll">
+                  <div className="xl:col-span-2 max-h-[700px] overflow-auto pr-2 custom-scroll space-y-6">
+                    <TestCases code={state.code} language={state.language} />
                     <IssueList issues={state.result.issues} />
                   </div>
                 </div>
@@ -360,64 +365,72 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {state.currentView === 'interview' && (
+          <InterviewPrep />
+        )}
+
         {state.currentView === 'analytics' && (
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
             <div className="flex flex-col gap-2">
               <h2 className="text-4xl font-black text-white tracking-tighter">Refynix <span className="text-blue-500">Insights</span></h2>
-              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Architectural performance metrics over time</p>
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Architectural performance & complexity metrics</p>
             </div>
-            {state.history.length === 0 ? (
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* User Performance Card */}
+              <div className="bg-[#0f172a]/60 backdrop-blur-xl p-10 rounded-[40px] border border-white/10 shadow-2xl lg:col-span-2">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-10 flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-blue-500" /> User Performance Trend
+                </h3>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={analyticsData}>
+                      <defs>
+                        <linearGradient id="colorQuality" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
+                      <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}%`} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
+                        itemStyle={{ color: '#e2e8f0' }}
+                      />
+                      <Area type="monotone" dataKey="quality" stroke="#0ea5e9" fillOpacity={1} fill="url(#colorQuality)" strokeWidth={3} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Complexity Metrics Card */}
+              <div className="space-y-8">
+                <div className="bg-[#0f172a]/60 backdrop-blur-xl p-8 rounded-[40px] border border-white/10 shadow-2xl relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 blur-3xl rounded-full -mr-8 -mt-8 group-hover:bg-blue-500/10 transition-colors"></div>
+                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Time Complexity</h3>
+                  <div className="text-5xl font-black text-white tracking-tighter mb-2 italic">
+                    {state.result?.timeComplexity || 'N/A'}
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Growth rate relative to input size</p>
+                </div>
+
+                <div className="bg-[#0f172a]/60 backdrop-blur-xl p-8 rounded-[40px] border border-white/10 shadow-2xl relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 blur-3xl rounded-full -mr-8 -mt-8 group-hover:bg-indigo-500/10 transition-colors"></div>
+                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Space Complexity</h3>
+                  <div className="text-5xl font-black text-blue-500 tracking-tighter mb-2 italic">
+                    {state.result?.spaceComplexity || 'N/A'}
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Memory footprint during execution</p>
+                </div>
+              </div>
+            </div>
+
+            {state.history.length === 0 && (
               <div className="bg-[#0f172a]/60 backdrop-blur-xl p-20 rounded-[40px] text-center border border-dashed border-white/5 shadow-2xl">
                 <BarChart3 className="w-16 h-16 text-slate-800 mx-auto mb-4" />
                 <p className="text-slate-500 font-medium">No historical data found. Start by refining your first file.</p>
               </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="bg-[#0f172a]/60 backdrop-blur-xl p-10 rounded-[40px] border border-white/10 shadow-2xl">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-10 flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-blue-500" /> Quality Trend
-                    </h3>
-                    <div className="h-80 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={analyticsData}>
-                          <defs>
-                            <linearGradient id="colorQuality" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
-                          <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                          <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}%`} />
-                          <Tooltip
-                            contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                            itemStyle={{ color: '#e2e8f0' }}
-                          />
-                          <Area type="monotone" dataKey="quality" stroke="#0ea5e9" fillOpacity={1} fill="url(#colorQuality)" strokeWidth={3} />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                  <div className="bg-[#0f172a]/60 backdrop-blur-xl p-10 rounded-[40px] border border-white/10 shadow-2xl">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-10 flex items-center gap-2">
-                      <ShieldAlert className="w-4 h-4 text-blue-500" /> Metrics Comparison
-                    </h3>
-                    <div className="h-80 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={analyticsData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
-                          <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                          <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '12px' }} />
-                          <Line type="monotone" dataKey="performance" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                          <Line type="monotone" dataKey="security" stroke="#f43f5e" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-              </>
             )}
           </div>
         )}

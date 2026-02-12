@@ -50,6 +50,15 @@ export interface ReviewResult {
   };
   impacts: ImpactAssessment[];
   summary: string;
+  timeComplexity?: string;
+  spaceComplexity?: string;
+}
+
+export interface TestResult {
+  description: string;
+  passed: boolean;
+  actual_output: string;
+  error?: string;
 }
 
 export interface HistoryItem {
@@ -76,6 +85,21 @@ export interface VirtualEmail {
   code: string;
 }
 
+export interface TestCase {
+  description: string;
+  input: string;
+  expected_output: string;
+}
+
+export interface InterviewQuestion {
+  id: number;
+  question: string;
+  options?: string[];
+  answer: string;
+  explanation: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+}
+
 export interface UserSettings {
   displayName: string;
   preferredLanguages: Language[];
@@ -85,7 +109,7 @@ export interface UserSettings {
   darkMode: boolean;
 }
 
-export type View = 'dashboard' | 'analytics' | 'settings' | 'history';
+export type View = 'dashboard' | 'analytics' | 'settings' | 'history' | 'interview';
 
 export interface ReviewState {
   code: string;
