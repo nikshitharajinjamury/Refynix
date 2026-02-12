@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional
+from pydantic import BaseModel
+from typing import List, Optional, Dict, Any
 from sqlalchemy import Column, Integer, String, Boolean
 from database import Base
 
@@ -50,6 +50,7 @@ class ReviewResult(BaseModel):
     impacts: List[ImpactAssessment]
     timeComplexity: str = "N/A"
     spaceComplexity: str = "N/A"
+    visualizations: Optional[Dict[str, Any]] = None
 
 class ReviewHistory(Base):
     __tablename__ = "review_history"

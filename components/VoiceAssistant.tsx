@@ -72,10 +72,10 @@ const VoiceAssistant: React.FC<Props> = ({ contextCode, language }) => {
   };
 
   const startSession = async () => {
-    const apiKey = process.env.API_KEY;
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-    if (!apiKey) {
-      setError("API Key (process.env.API_KEY) is missing.");
+    if (!apiKey || apiKey === "your_gemini_api_key_here") {
+      setError("Gemini API Key is missing. Please add VITE_GEMINI_API_KEY to your .env file.");
       setIsActive(true);
       return;
     }
@@ -84,42 +84,53 @@ const VoiceAssistant: React.FC<Props> = ({ contextCode, language }) => {
     setError(null);
 
     // Create fresh instance right before call as per guidelines
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1alpha' });
 
+    console.log("Initializing audio context...");
     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     const outputNode = audioContextRef.current.createGain();
     outputNode.connect(audioContextRef.current.destination);
 
     try {
       const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+        model: 'gemini-2.0-flash-exp',
         config: {
-          responseModalities: [Modality.AUDIO],
-          systemInstruction: `You are the Refynix Voice Assistant. Help the user understand their code refinements. Context: ${contextCode.substring(0, 1000)}...`,
-          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } }
+          generationConfig: {
+            responseModalities: ['audio' as any],
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } } }
+          },
+          systemInstruction: { parts: [{ text: `You are the Refynix Voice Assistant. Help the user understand their code refinements. Context: ${contextCode.substring(0, 1000)}...` }] },
         },
         callbacks: {
           onopen: async () => {
+            console.log("Voice session opened.");
             setIsActive(true);
             setIsConnecting(false);
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const inputCtx = new AudioContext({ sampleRate: 16000 });
-            const source = inputCtx.createMediaStreamSource(stream);
-            const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
+            try {
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              const inputCtx = new AudioContext({ sampleRate: 16000 });
+              const source = inputCtx.createMediaStreamSource(stream);
+              const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
 
-            scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
-              const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
-              const pcmBlob = createBlob(inputData);
-              // CRITICAL: initiate sendRealtimeInput after live.connect resolves
-              sessionPromise.then((session) => {
-                session.sendRealtimeInput({ media: pcmBlob });
-              });
-            };
+              scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
+                const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
+                const pcmBlob = createBlob(inputData);
+                sessionPromise.then((session) => {
+                  session.sendRealtimeInput({ media: pcmBlob });
+                }).catch(e => console.error("Failed to send realtime input:", e));
+              };
 
-            source.connect(scriptProcessor);
-            scriptProcessor.connect(inputCtx.destination);
+              source.connect(scriptProcessor);
+              scriptProcessor.connect(inputCtx.destination);
+              console.log("Audio input stream connected.");
+            } catch (err) {
+              console.error("Microphone access failed:", err);
+              setError("Microphone access denied or failed.");
+              stopSession();
+            }
           },
           onmessage: async (message: LiveServerMessage) => {
+            console.log("Received server message:", message);
             // Handle audio output
             const base64EncodedAudioString = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64EncodedAudioString && audioContextRef.current) {
@@ -140,6 +151,7 @@ const VoiceAssistant: React.FC<Props> = ({ contextCode, language }) => {
             // Handle interruption
             const interrupted = message.serverContent?.interrupted;
             if (interrupted) {
+              console.log("Session interrupted.");
               for (const source of sourcesRef.current.values()) {
                 source.stop();
                 sourcesRef.current.delete(source);
@@ -147,8 +159,17 @@ const VoiceAssistant: React.FC<Props> = ({ contextCode, language }) => {
               nextStartTimeRef.current = 0;
             }
           },
-          onclose: () => stopSession(),
-          onerror: () => stopSession()
+          onclose: () => {
+            console.log("Voice session closed.");
+            stopSession();
+          },
+          onerror: (err: any) => {
+            console.error("Voice session error:", err);
+            // Extract more info if available
+            const errorMsg = err?.message || err?.toString() || "Unknown connection error";
+            setError(`Connection failed: ${errorMsg}`);
+            stopSession();
+          }
         }
       });
       sessionRef.current = await sessionPromise;

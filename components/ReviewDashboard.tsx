@@ -2,6 +2,7 @@
 import React from 'react';
 import { ReviewResult } from '../types';
 import { ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+import Visualizer from './Visualizer';
 
 interface Props {
   result: ReviewResult;
@@ -104,6 +105,11 @@ const ReviewDashboard: React.FC<Props> = ({ result }) => {
               </div>
             ))}
         </div>
+      )}
+
+      {/* Architectural Visualizations */}
+      {result.visualizations && (
+        <Visualizer visualizations={result.visualizations as any} />
       )}
     </div>
   );

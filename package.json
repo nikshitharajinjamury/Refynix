@@ -11,10 +11,14 @@
   "dependencies": {
     "@google/genai": "^1.40.0",
     "@react-oauth/google": "^0.13.4",
+    "@types/react-plotly.js": "^2.6.4",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.468.0",
+    "mermaid": "^11.12.2",
+    "plotly.js-dist-min": "^3.3.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-plotly.js": "^2.6.0",
     "recharts": "^2.15.0"
   },
   "devDependencies": {

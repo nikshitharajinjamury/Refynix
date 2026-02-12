@@ -4,6 +4,7 @@ from typing import Optional
 from groq import Groq
 from dotenv import load_dotenv
 from models import ReviewResult
+from visualizer import VisualizationModule
 
 load_dotenv()
 
@@ -13,6 +14,7 @@ class GroqService:
         if not self.api_key:
             raise ValueError("GROQ_API_KEY is not set in environment variables")
         self.client = Groq(api_key=self.api_key)
+        self.visualizer = VisualizationModule()
 
     async def analyze_code(self, code: str, language: str, instruction: Optional[str] = None) -> ReviewResult:
         system_instruction = """
@@ -70,7 +72,23 @@ class GroqService:
                     if key in data["scores"]:
                         data["scores"][key] = int(data["scores"][key])
 
-            return ReviewResult.model_validate(data)
+            # Generate Visualizations
+            metrics = self.visualizer.extract_metrics(code, data.get("optimizedCode", code), language)
+            flowchart = self.visualizer.generate_mermaid_flowchart(code, data.get("optimizedCode", code))
+            plotly_json = self.visualizer.generate_plotly_json(metrics)
+            ast_comparison = self.visualizer.generate_ast_comparison(code, data.get("optimizedCode", code), language)
+            efficiency_score = self.visualizer.calculate_efficiency_score(metrics)
+
+            result = ReviewResult.model_validate(data)
+            result.visualizations = {
+                "metrics": metrics,
+                "flowchart": flowchart,
+                "plotly": plotly_json,
+                "ast": ast_comparison,
+                "efficiencyScore": efficiency_score
+            }
+
+            return result
 
 
         except Exception as e:

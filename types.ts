@@ -52,6 +52,13 @@ export interface ReviewResult {
   summary: string;
   timeComplexity?: string;
   spaceComplexity?: string;
+  visualizations?: {
+    metrics: any;
+    flowchart: string;
+    plotly: string;
+    ast: any;
+    efficiencyScore: number;
+  };
 }
 
 export interface TestResult {
