@@ -69,7 +69,7 @@ async def analyze_code(request: CodeRequest, user: Optional[User] = Depends(get_
                 code=request.code,
                 language=request.language,
                 result=json.dumps(result.dict()),
-                timestamp=datetime.utcnow().isoformat()
+                timestamp=datetime.utcnow().isoformat() + "Z"
             )
             db.add(history_item)
             db.commit()

@@ -2,11 +2,8 @@
 export enum Language {
   Python = 'python',
   JavaScript = 'javascript',
-  TypeScript = 'typescript',
   Java = 'java',
-  CPP = 'cpp',
-  Go = 'go',
-  Rust = 'rust'
+  CPP = 'cpp'
 }
 
 export enum Severity {
@@ -82,8 +79,9 @@ export interface VirtualEmail {
 export interface UserSettings {
   displayName: string;
   preferredLanguages: Language[];
-  codingStyle: 'Standard' | 'Airbnb' | 'Google' | 'Functional';
-  aiProvider: 'Lovable AI (Gemini)' | 'OpenAI' | 'Anthropic';
+  codingStyle: 'Standard' | 'Airbnb' | 'Google';
+  analysisDepth: 'Quick' | 'Detailed';
+  emailReports: boolean;
   darkMode: boolean;
 }
 

@@ -24,7 +24,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 def send_verification_email(to_email: str, code: str):
     smtp_email = os.getenv("SMTP_EMAIL")
-    smtp_password = os.getenv("SMTP_PASSWORD")
+    smtp_password = os.getenv("SMTP_PASSWORD").replace(" ", "") if os.getenv("SMTP_PASSWORD") else None
 
     if not smtp_email or not smtp_password or "your_email" in smtp_email:
         print(f"--- EMAIL SIMULATION (SMTP not configured) --- To: {to_email}, Code: {code}")
@@ -45,6 +45,7 @@ def send_verification_email(to_email: str, code: str):
 
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
+        print(f"--- SMTP CONNECTING --- User: {smtp_email}")
         server.login(smtp_email, smtp_password)
         text = msg.as_string()
         server.sendmail(smtp_email, to_email, text)
@@ -162,12 +163,27 @@ def verify_email(data: VerifyEmail, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Email verified successfully"}
 
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
 @router.post("/auth/google")
 def google_login(data: GoogleLogin, db: Session = Depends(get_db)):
-    # In a real app, verify `data.token` with Google API
-    # Here we mock it for the hackathon speed
-    email = "google_user@refinyx.io" # Extract from token
-    name = "Google User"
+    try:
+        # Verify the token with Google
+        # Note: We need the CLIENT_ID here. If not set, it might skip audience check 
+        # or we should enforce it.
+        GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+        
+        idinfo = id_token.verify_oauth2_token(data.token, requests.Request(), GOOGLE_CLIENT_ID)
+
+        # ID token is valid. Get the user's information from the decoded token.
+        email = idinfo['email']
+        name = idinfo.get('name', 'Google User')
+        google_id = idinfo['sub']
+
+    except ValueError:
+        # Invalid token
+        raise HTTPException(status_code=400, detail="Invalid Google Token")
 
     user = db.query(User).filter(User.email == email).first()
     if not user:
@@ -176,7 +192,7 @@ def google_login(data: GoogleLogin, db: Session = Depends(get_db)):
             full_name=name,
             hashed_password=get_password_hash("google_auth"),
             is_verified=True,
-            google_id="mock_google_id"
+            google_id=google_id
         )
         db.add(user)
         db.commit()

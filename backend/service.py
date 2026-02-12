@@ -17,7 +17,7 @@ class GroqService:
     async def analyze_code(self, code: str, language: str, instruction: Optional[str] = None) -> ReviewResult:
         system_instruction = """
         REFINYX ARCHITECT MODE.
-        You are the core intelligence of Refinyx, powered by Groq Llama 3.3. Analyze the code for logic, security, and performance.
+        You are the core intelligence of Refynix, powered by Groq Llama 3.3. Analyze the code for logic, security, and performance.
         
         CRITICAL: You MUST return a valid JSON object matching the requested schema.
         Ensure that 'issues', 'scores', and 'impacts' are populated realistically based on the analysis.
@@ -59,8 +59,16 @@ class GroqService:
             content = chat_completion.choices[0].message.content
             if not content:
                 raise ValueError("Empty response from Groq engine")
+            
+            # Sanitize JSON: Cast scores to int to avoid validation errors
+            import json
+            data = json.loads(content)
+            if "scores" in data:
+                for key in ["security", "performance", "maintainability", "quality"]:
+                    if key in data["scores"]:
+                        data["scores"][key] = int(data["scores"][key])
 
-            return ReviewResult.model_validate_json(content)
+            return ReviewResult.model_validate(data)
 
         except Exception as e:
             print(f"Error in Groq analysis: {e}")

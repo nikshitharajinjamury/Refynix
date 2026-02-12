@@ -73,7 +73,7 @@ const VoiceAssistant: React.FC<Props> = ({ contextCode, language }) => {
 
   const startSession = async () => {
     const apiKey = process.env.API_KEY;
-    
+
     if (!apiKey) {
       setError("API Key (process.env.API_KEY) is missing.");
       setIsActive(true);
@@ -82,10 +82,10 @@ const VoiceAssistant: React.FC<Props> = ({ contextCode, language }) => {
 
     setIsConnecting(true);
     setError(null);
-    
+
     // Create fresh instance right before call as per guidelines
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    
+
     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     const outputNode = audioContextRef.current.createGain();
     outputNode.connect(audioContextRef.current.destination);
@@ -95,7 +95,7 @@ const VoiceAssistant: React.FC<Props> = ({ contextCode, language }) => {
         model: 'gemini-2.5-flash-native-audio-preview-12-2025',
         config: {
           responseModalities: [Modality.AUDIO],
-          systemInstruction: `You are the Refinyx Voice Assistant. Help the user understand their code refinements. Context: ${contextCode.substring(0, 1000)}...`,
+          systemInstruction: `You are the Refynix Voice Assistant. Help the user understand their code refinements. Context: ${contextCode.substring(0, 1000)}...`,
           speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } }
         },
         callbacks: {
@@ -106,7 +106,7 @@ const VoiceAssistant: React.FC<Props> = ({ contextCode, language }) => {
             const inputCtx = new AudioContext({ sampleRate: 16000 });
             const source = inputCtx.createMediaStreamSource(stream);
             const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
-            
+
             scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
               const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
               const pcmBlob = createBlob(inputData);
@@ -115,13 +115,13 @@ const VoiceAssistant: React.FC<Props> = ({ contextCode, language }) => {
                 session.sendRealtimeInput({ media: pcmBlob });
               });
             };
-            
+
             source.connect(scriptProcessor);
             scriptProcessor.connect(inputCtx.destination);
           },
           onmessage: async (message: LiveServerMessage) => {
             // Handle audio output
-            const base64EncodedAudioString = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+            const base64EncodedAudioString = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64EncodedAudioString && audioContextRef.current) {
               const ctx = audioContextRef.current;
               nextStartTimeRef.current = Math.max(nextStartTimeRef.current, ctx.currentTime);
@@ -164,7 +164,7 @@ const VoiceAssistant: React.FC<Props> = ({ contextCode, language }) => {
     setIsConnecting(false);
     setError(null);
     sessionRef.current?.close();
-    sourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
+    sourcesRef.current.forEach(s => { try { s.stop(); } catch (e) { } });
     sourcesRef.current.clear();
     audioContextRef.current?.close();
   };
@@ -173,43 +173,42 @@ const VoiceAssistant: React.FC<Props> = ({ contextCode, language }) => {
     <div className="fixed bottom-10 right-10 z-[60] flex flex-col items-end gap-4">
       {isActive && (
         <div className="bg-slate-900/90 backdrop-blur-xl border border-white/10 p-6 rounded-[32px] shadow-2xl w-72 animate-in slide-in-from-bottom-4 duration-500">
-           <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                 <div className={`w-2 h-2 rounded-full ${error ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`}></div>
-                 <p className="text-[10px] font-black text-white uppercase tracking-widest">Assistant Session</p>
-              </div>
-              <button onClick={stopSession} className="text-slate-500 hover:text-white transition-colors">
-                 <X className="w-4 h-4" />
-              </button>
-           </div>
-           
-           <div className="flex flex-col items-center gap-6 mb-8">
-              <div className={`w-20 h-20 rounded-full flex items-center justify-center relative overflow-hidden ${error ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
-                 {!error && <div className="absolute inset-0 bg-emerald-500/20 animate-ping opacity-20"></div>}
-                 {error ? <AlertTriangle className="text-amber-500 w-8 h-8" /> : <Volume2 className="text-emerald-500 w-8 h-8" />}
-              </div>
-              <div className="text-center space-y-1">
-                 <p className="text-xs font-bold text-slate-300">{error ? "Session Error" : "Assistant Active"}</p>
-                 <p className="text-[10px] text-slate-500 font-medium px-2 leading-relaxed">
-                   {error || "Ask about vulnerabilities or logic fixes in your code."}
-                 </p>
-              </div>
-           </div>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className={`w-2 h-2 rounded-full ${error ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`}></div>
+              <p className="text-[10px] font-black text-white uppercase tracking-widest">Assistant Session</p>
+            </div>
+            <button onClick={stopSession} className="text-slate-500 hover:text-white transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
-           <Button variant={error ? 'secondary' : 'danger'} className="w-full text-[10px] font-black uppercase tracking-widest py-3 rounded-2xl" onClick={stopSession}>
-             {error ? 'Close' : 'End Consultation'}
-           </Button>
+          <div className="flex flex-col items-center gap-6 mb-8">
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center relative overflow-hidden ${error ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
+              {!error && <div className="absolute inset-0 bg-emerald-500/20 animate-ping opacity-20"></div>}
+              {error ? <AlertTriangle className="text-amber-500 w-8 h-8" /> : <Volume2 className="text-emerald-500 w-8 h-8" />}
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-xs font-bold text-slate-300">{error ? "Session Error" : "Assistant Active"}</p>
+              <p className="text-[10px] text-slate-500 font-medium px-2 leading-relaxed">
+                {error || "Ask about vulnerabilities or logic fixes in your code."}
+              </p>
+            </div>
+          </div>
+
+          <Button variant={error ? 'secondary' : 'danger'} className="w-full text-[10px] font-black uppercase tracking-widest py-3 rounded-2xl" onClick={stopSession}>
+            {error ? 'Close' : 'End Consultation'}
+          </Button>
         </div>
       )}
-      
+
       <button
         onClick={isActive ? stopSession : startSession}
         disabled={isConnecting}
-        className={`w-16 h-16 rounded-[24px] flex items-center justify-center transition-all shadow-2xl group ${
-          isActive 
-            ? 'bg-red-500 shadow-red-500/20' 
-            : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'
-        }`}
+        className={`w-16 h-16 rounded-[24px] flex items-center justify-center transition-all shadow-2xl group ${isActive
+          ? 'bg-red-500 shadow-red-500/20'
+          : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/30'
+          }`}
       >
         {isConnecting ? (
           <Loader2 className="w-6 h-6 text-white animate-spin" />

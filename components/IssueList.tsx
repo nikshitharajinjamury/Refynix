@@ -10,11 +10,11 @@ interface Props {
 const IssueList: React.FC<Props> = ({ issues, onIssueClick }) => {
   const getSeverityColor = (sev: Severity) => {
     switch (sev) {
-      case Severity.Critical: return 'bg-red-500/20 text-red-400 border-red-500/50';
-      case Severity.High: return 'bg-orange-500/20 text-orange-400 border-orange-500/50';
-      case Severity.Medium: return 'bg-amber-500/20 text-amber-400 border-amber-500/50';
-      case Severity.Low: return 'bg-blue-500/20 text-blue-400 border-blue-500/50';
-      default: return 'bg-slate-500/20 text-slate-400 border-slate-500/50';
+      case Severity.Critical: return 'bg-red-500/10 text-red-400 border-red-500/20';
+      case Severity.High: return 'bg-red-500/10 text-red-400 border-red-500/20'; // Changed from orange to red
+      case Severity.Medium: return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'; // Changed from amber to yellow
+      case Severity.Low: return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
     }
   };
 
@@ -32,9 +32,9 @@ const IssueList: React.FC<Props> = ({ issues, onIssueClick }) => {
   return (
     <div className="space-y-4">
       {issues.map((issue) => (
-        <div 
+        <div
           key={issue.id}
-          className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 hover:border-slate-600 transition-all cursor-pointer group"
+          className="bg-[#1e293b]/40 backdrop-blur-sm border border-white/5 rounded-xl p-5 hover:border-white/10 transition-all cursor-pointer group shadow-lg"
           onClick={() => onIssueClick?.(issue)}
         >
           <div className="flex items-start justify-between gap-4 mb-2">
@@ -44,20 +44,20 @@ const IssueList: React.FC<Props> = ({ issues, onIssueClick }) => {
                 {issue.title}
               </h4>
             </div>
-            <span className={`text-xs px-2 py-1 rounded-md border font-medium ${getSeverityColor(issue.severity)}`}>
+            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${getSeverityColor(issue.severity)}`}>
               {issue.severity}
             </span>
           </div>
-          
-          <p className="text-slate-400 text-sm mb-4 leading-relaxed">
+
+          <p className="text-slate-400 text-sm mb-4 leading-relaxed font-medium">
             {issue.description}
           </p>
-          
+
           <div className="flex flex-wrap items-center gap-4 text-xs">
-            <div className="bg-slate-900/80 px-2 py-1 rounded text-slate-500 border border-slate-800">
+            <div className="bg-black/30 px-2 py-1 rounded text-slate-500 border border-white/5 font-mono">
               Line {issue.line}
             </div>
-            <div className="text-blue-400/80 italic">
+            <div className="text-blue-400/80 italic font-medium">
               Fix: {issue.suggestion}
             </div>
           </div>
@@ -65,7 +65,7 @@ const IssueList: React.FC<Props> = ({ issues, onIssueClick }) => {
       ))}
 
       {issues.length === 0 && (
-        <div className="text-center py-12 bg-slate-800/20 rounded-2xl border border-dashed border-slate-700">
+        <div className="text-center py-12 bg-[#1e293b]/40 backdrop-blur-sm rounded-2xl border border-dashed border-white/10">
           <div className="text-4xl mb-4">🎉</div>
           <h3 className="text-slate-300 font-medium">No issues detected!</h3>
           <p className="text-slate-500 text-sm mt-1">Your code looks solid.</p>
